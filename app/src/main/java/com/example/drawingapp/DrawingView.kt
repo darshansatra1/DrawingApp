@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 
@@ -18,6 +19,7 @@ class DrawingView(context: Context, attrs:AttributeSet) :View(context,attrs){
     private var canvas:Canvas? = null
     private var brushSize:Float = 0.toFloat()
     private var color = Color.BLACK
+    private var paths = ArrayList<CustomPath>()
 
 
     init{
@@ -32,7 +34,6 @@ class DrawingView(context: Context, attrs:AttributeSet) :View(context,attrs){
         drawPaint!!.strokeJoin = Paint.Join.ROUND
         drawPaint!!.strokeCap = Paint.Cap.ROUND
         canvasPaint = Paint(Paint.DITHER_FLAG)
-        brushSize = 20.toFloat()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -44,6 +45,12 @@ class DrawingView(context: Context, attrs:AttributeSet) :View(context,attrs){
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint)
+        for(path in paths){
+            drawPaint!!.strokeWidth = path.brushThickness
+            drawPaint!!.color = path.color
+            canvas.drawPath(path,drawPaint!!)
+        }
+
         if(!drawPath!!.isEmpty){
             drawPaint!!.strokeWidth = drawPath!!.brushThickness
             drawPaint!!.color = drawPath!!.color
@@ -66,15 +73,21 @@ class DrawingView(context: Context, attrs:AttributeSet) :View(context,attrs){
                 drawPath!!.lineTo(touchX!!,touchY!!)
             }
             MotionEvent.ACTION_UP->{
+                paths.add(drawPath!!)
                 drawPath = CustomPath(color,brushSize)
             }
             else->return false
         }
         invalidate()
         return true
+    }
 
-        return super.onTouchEvent(event)
+    fun setSizeForBrush(newSize:Float){
+        brushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+            newSize, resources.displayMetrics
+            )
 
+        drawPaint!!.strokeWidth = brushSize
     }
 
     internal inner class CustomPath(var color:Int,var brushThickness:Float):Path(){
