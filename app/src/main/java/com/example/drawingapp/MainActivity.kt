@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -21,18 +22,24 @@ class MainActivity : AppCompatActivity() {
 
     private var drawingView:DrawingView? = null
     private var imageButtonCurrentPaint: ImageButton? = null
-    val requestPermission:ActivityResultLauncher<Array<String>> =
+    private val openGalleryLauncher:ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+            result->
+            if(result.resultCode== RESULT_OK && result.data!=null){
+                val imageBackground:ImageView = findViewById(R.id.iv_background)
+                imageBackground.setImageURI(result.data?.data)
+            }
+        }
+
+    private val requestPermission:ActivityResultLauncher<Array<String>> =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){
             permissions->
             permissions.entries.forEach{
                 val permissionName = it.key
                 val isGranted = it.value
                 if (isGranted){
-                    Toast.makeText(this,"Permissiopn granted now you can read the storage files",
-                    Toast.LENGTH_LONG).show()
-
                     val pickIntent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-
+                    openGalleryLauncher.launch(pickIntent)
                 }else{
                     if(permissionName==android.Manifest.permission.READ_EXTERNAL_STORAGE){
                         Toast.makeText(this,"Permission denied",
