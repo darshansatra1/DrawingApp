@@ -20,10 +20,18 @@ class DrawingView(context: Context, attrs:AttributeSet) :View(context,attrs){
     private var brushSize:Float = 0.toFloat()
     private var color = Color.BLACK
     private var paths = ArrayList<CustomPath>()
+    private var undoPaths = ArrayList<CustomPath>()
 
 
     init{
         setUpDrawing()
+    }
+
+    fun onClickUndo(){
+        if(paths.size>0){
+            undoPaths.add(paths.removeAt(paths.size-1))
+            invalidate()
+        }
     }
 
     private fun setUpDrawing(){
